@@ -1,0 +1,37 @@
+# ============================================================
+# docker-compose.yml — chạy Jenkins bằng 1 lệnh
+#
+# Giải thích các khái niệm:
+#   volumes  : lưu dữ liệu Jenkins ra ngoài container
+#              → xoá container, data vẫn còn
+#   ports    : 8080 = giao diện web Jenkins
+#              50000 = Jenkins agents kết nối vào (dùng sau)
+#   /var/run/docker.sock : "cửa" để Jenkins gọi Docker Desktop
+#              trên máy host (Windows) từ bên trong container
+# ============================================================
+services:
+  jenkins:
+    build:
+      context: .          # Build từ Dockerfile trong thư mục này
+      dockerfile: Dockerfile
+    image: my-jenkins:latest
+    container_name: jenkins
+    restart: unless-stopped   # Tự khởi động lại nếu máy reboot
+
+    ports:
+      - "8080:8080"     # Truy cập Jenkins tại http://localhost:8080
+      - "50000:50000"   # Cổng cho Jenkins agent (dùng ở mốc sau)
+
+    volumes:
+      # Lưu toàn bộ config + job + plugin Jenkins ra volume
+      # → restart container không mất dữ liệu
+      - jenkins_home:/var/jenkins_home
+
+      # Mount Docker socket: cho phép Jenkins dùng Docker của host
+      # Đây là kỹ thuật "Docker outside of Docker" (DooD)
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  jenkins_home:
+    # Volume được Docker quản lý, lưu tại: /var/lib/docker/volumes/jenkins_home
+    driver: local

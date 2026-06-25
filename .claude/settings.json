@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf '\\033[32m✅ Câu trả lời đã hoàn thành!\\033[0m\\n' >&2; echo '{\"systemMessage\": \"✅ Câu trả lời đã hoàn thành!\"}'"
+          }
+        ]
+      }
+    ]
+  }
+}
