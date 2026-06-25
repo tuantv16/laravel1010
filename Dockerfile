@@ -34,8 +34,13 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 # --- Bước 7: Cài package frontend và build assets ---
 RUN npm ci && npm run build
 
-# --- Bước 8: Cấp quyền cho Laravel ghi vào thư mục storage và cache ---
-RUN chown -R www-data:www-data storage bootstrap/cache \
+# --- Bước 8: Tạo thư mục storage cần thiết và cấp quyền ---
+# mkdir -p đảm bảo các thư mục này luôn tồn tại dù git không track nội dung bên trong
+RUN mkdir -p storage/framework/views \
+             storage/framework/sessions \
+             storage/framework/cache/data \
+             bootstrap/cache \
+ && chown -R www-data:www-data storage bootstrap/cache \
  && chmod -R 775 storage bootstrap/cache
 
 # --- Bước 9: Trỏ Apache vào thư mục public/ của Laravel ---
