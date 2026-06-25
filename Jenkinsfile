@@ -147,29 +147,23 @@ pipeline {
         // STAGE 6: Deploy lên AWS EC2
         // ================================================
         // SSH vào máy EC2, kéo image mới từ ECR về và chạy container mới.
-        // Container cũ bị dừng và xoá → container mới thay thế.
+        // EC2 dùng IAM Instance Profile (role) để tự xác thực ECR
+        // → không cần truyền AWS credentials qua SSH (an toàn hơn).
         stage('🚀 Deploy lên EC2') {
             steps {
                 withCredentials([
                     // SSH private key để đăng nhập vào EC2
                     sshUserPrivateKey(
-                        credentialsId : 'ec2-ssh-key',   // ID bạn sẽ tạo trong Jenkins
+                        credentialsId : 'ec2-ssh-key',
                         keyFileVariable : 'KEY_FILE',
                         usernameVariable: 'EC2_USER'
                     ),
-                    // Địa chỉ IP của EC2 (lưu trong Jenkins Credentials dạng Secret Text)
-                    string(credentialsId: 'ec2-host', variable: 'EC2_HOST'),
-                    // AWS credentials để EC2 pull từ ECR
-                    [
-                        $class           : 'AmazonWebServicesCredentialsBinding',
-                        credentialsId    : 'aws-credentials',
-                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
-                    ]
+                    // Địa chỉ server EC2 (lưu trong Jenkins Credentials dạng Secret Text)
+                    string(credentialsId: 'ec2-host', variable: 'EC2_HOST')
                 ]) {
                     sh """
                         ssh -o StrictHostKeyChecking=no -i \${KEY_FILE} \${EC2_USER}@\${EC2_HOST} '
-                            # Đăng nhập ECR trên máy EC2
+                            # EC2 dùng IAM Instance Profile → aws cli tự lấy credentials
                             aws ecr get-login-password --region ${AWS_REGION} | \\
                                 docker login --username AWS --password-stdin ${env.ECR_REGISTRY}
 
