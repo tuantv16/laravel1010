@@ -1,0 +1,36 @@
+# ============================================================
+# .dockerignore — các file/thư mục KHÔNG đưa vào Docker image
+#
+# Tại sao cần? Giống .gitignore:
+#   - Giảm kích thước image (vendor/ có thể hàng trăm MB!)
+#   - Tránh lộ thông tin nhạy cảm (.env)
+#   - Tăng tốc độ build
+# ============================================================
+
+# Thư mục dependency — sẽ được cài lại trong Dockerfile
+vendor/
+node_modules/
+
+# File môi trường — TUYỆT ĐỐI không đưa vào image
+# App sẽ đọc .env từ biến môi trường Docker runtime
+.env
+.env.local
+.env.*.local
+
+# Git và CI
+.git/
+.github/
+Jenkinsfile
+.claude/
+
+# Test — không cần trong production image
+tests/
+
+# Cache và log runtime — container tự tạo khi chạy
+storage/logs/
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+
+# Tài liệu không cần trong image
+*.md
